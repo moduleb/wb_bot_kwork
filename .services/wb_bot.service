@@ -1,0 +1,14 @@
+[Unit]
+Description=WB Bot
+After=network.target
+
+[Service]
+User=a
+WorkingDirectory=/home/a/wb_bot
+EnvironmentFile=/home/a/wb_bot/.env
+ExecStart=/home/a/wb_bot/.venv/bin/python /home/a/wb_bot/run.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

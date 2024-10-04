@@ -1,0 +1,7 @@
+aiogram
+pydantic-settings
+alembic
+asyncpg
+psycopg2-binary
+sqlalchemy
+requests
