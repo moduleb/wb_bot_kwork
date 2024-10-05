@@ -6,6 +6,7 @@
 
 import asyncio
 import logging
+import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import AiogramError
@@ -13,6 +14,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from commands import user_commands
 from settings import settings
 from handlers import router
+from db import check_database_connection
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,10 @@ dp = Dispatcher(storage=MemoryStorage())
 async def main():
     """Запускает бота."""
     logger.info("Запуск бота...")
+
+    if not await check_database_connection():
+        logger.critical("База данных недоступна")
+        sys.exit(1)
 
     try:
         # Решистрируем роутер

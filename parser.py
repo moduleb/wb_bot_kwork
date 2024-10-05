@@ -20,6 +20,8 @@ def get_item_info(origin_url: str) -> dict:
     _item_id = _get_item_id(origin_url)
     api_url = base_url.format(item_id=_item_id)
     _data = _get_data(api_url)
+    # photo_url = _get_photo_url(_data)
+    # image_bytes = _get_photo(photo_url)
     price = _get_price(_data)
     title = _get_title(_data)
     return {
@@ -47,6 +49,62 @@ def _get_item_id(url: str) -> int:
     except (ValueError, IndexError) as e:
         msg = "Неправильный формат id"
         raise ParserError(msg) from e
+
+
+def _get_photo(photo_url: str) -> BytesIO:
+
+    try:
+        response = requests.get(url=photo_url, timeout=10)
+        response.raise_for_status()  # Проверка на ошибки HTTP
+        result = response.content
+
+        if not result:
+            msg = "Ответ от API Wildberries не содержит данных"
+            raise ValueError(msg)
+
+        image_bytes = io.BytesIO(response.content)
+
+        return image_bytes
+
+    except (HTTPError, RequestException) as e:
+        logger.exception("Ошибка при получении данных с API")
+        raise ParserError from e
+
+    except ValueError as e:
+        logger.exception("Ошибка в данных, полученных от API Wildberries")
+        raise ParserError from e
+
+    except Exception as e:
+        logger.exception("Неизвестная ошибка")
+        raise ParserError from e
+
+
+def _get_photo_url(data: dict) -> str:
+    "ПОМЕНЯТЬ АДРЕС НАЙТИ ССЫЛКУ"
+    try:
+        photo_url = data["data"]["products"][0]["sizes"][0]["price"]["total"]
+
+        if price <= 0:
+            msg = "Полученный price <= 0: %s", price
+            logger.exception(msg)
+            raise ValueError(msg)
+
+        return int(price) // 100  # Возвращаем цену, если она больше 0
+
+
+    except KeyError as e:
+        logger.exception("Ошибка в полученных данных от wb. В 'data' отсутствует ключ 'price'")
+        raise ParserError from e
+
+    except IndexError as e:  # формат данных в словаре не совпадает с ожидаемым
+        logger.exception("Ошибка в полученных данных от wb. Формат 'data' не соответсвует ожидаемому")
+        raise ParserError from e
+
+    except Exception as e:
+        logger.exception("Неизвестная ошибка при получении 'price'")
+        raise ParserError from e
+
+
 
 
 def _get_data(api_url: str) -> dict:

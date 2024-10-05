@@ -51,3 +51,4 @@ async def _save_user(user: User, session: AsyncSession) -> None:
 
     except exceptions.UniqueViolationError:
         logger.exception("Пользователь с таким tg_id уже существует")
+        # Для пользователя эту ошибку игнорируем, ничего не сообщаем

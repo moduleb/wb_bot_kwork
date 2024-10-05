@@ -33,7 +33,6 @@ async def check_database_connection() -> bool | None:
                 return True
 
     except OSError:
-        logger.critical("Не удалось подключиться к базе данных.")
         return False
 
 
