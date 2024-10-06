@@ -5,7 +5,7 @@ from typing import TypeVar
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from models import Base
+from dao.models import Base
 
 logger = logging.getLogger(__name__)
 

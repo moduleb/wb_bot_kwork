@@ -3,8 +3,8 @@ import logging
 from asyncpg import exceptions
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import crud
-from models import User
+from dao import crud
+from dao.models import User
 
 logger = logging.getLogger(__name__)
 

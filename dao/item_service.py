@@ -4,9 +4,9 @@ from asyncpg import exceptions
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import crud
+from dao import crud
+from dao.models import Item
 from db import DBError
-from models import Item
 
 logger = logging.getLogger(__name__)
 
