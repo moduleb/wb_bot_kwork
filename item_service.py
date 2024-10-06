@@ -12,15 +12,22 @@ logger = logging.getLogger(__name__)
 
 
 async def get(item_data: dict, session: AsyncSession) -> Item | None:
-    if item := await crud.get_many_by_filters(session=session,
-                                              model=Item,
-                                              **item_data):
-        return item[0]
+
+    logger.debug("Поиск уже существующего item в базе данных:\n"
+                "Title: %s", item_data.get("title"))
+
+    items = await crud.get_many_by_filters(session=session,
+                                           model=Item,
+                                           load_relationships=True,
+                                           **item_data)
+
+    logger.debug("Найдены объекты: %s", items)
+
+    return items[0] if items else None
 
 
-def create(data: dict) -> Item:
-    """Создает объект Item."""
-    return Item(**data)
+def create(item_data: dict):
+    return Item(**item_data)
 
 
 async def save(item: Item, session: AsyncSession) -> None:
@@ -37,3 +44,9 @@ async def save(item: Item, session: AsyncSession) -> None:
     except IntegrityError:
         logger.debug("Товар уже существует")
         raise DBDublicateError
+
+
+async def delete_all(session: AsyncSession, items: list) -> None:
+
+    logger.debug("Удаляем items: %s", items)
+    await crud.delete_many(session=session, objs=items)

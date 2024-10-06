@@ -9,11 +9,11 @@ from models import User
 logger = logging.getLogger(__name__)
 
 
-async def get_or_create(tg_id: int, session: AsyncSession) -> User:
+async def get_or_create(tg_id: int, session: AsyncSession, load_relationships=False) -> User:
     """Поиск пользователя. Если не найден, создаем и сохраняем в бд."""
     # Ищем пользователя в базе
-    user = await _get_user_by_tg_id(tg_id, session)
-    logger.debug("Получен объект user: %s", user)
+    user = await _get_user_by_tg_id(tg_id, session, load_relationships)
+    # logger.debug("Получен объект user: %s", user)
 
     # Создаем пользователя если не существует и сохраняем в бд.
     if not user:
@@ -28,11 +28,12 @@ async def get_or_create(tg_id: int, session: AsyncSession) -> User:
     return user
 
 
-async def _get_user_by_tg_id(tg_id: int, session: AsyncSession) -> User | None:
+async def _get_user_by_tg_id(tg_id: int, session: AsyncSession, load_relationships) -> User | None:
     """Поиск пользователя по id."""
     objs_list = await crud.get_many_by_filters(session=session,
                                                 model=User,
-                                                tg_id=tg_id)
+                                                tg_id=tg_id,
+                                               load_relationships=load_relationships)
 
     return objs_list[0] if objs_list else None
 
@@ -45,9 +46,8 @@ def _create_user(tg_id: int) -> User:
 async def _save_user(user: User, session: AsyncSession) -> None:
     """Сохраняем пользователя в бд."""
     try:
-        await crud.save_one(
-            session=session,
-            obj=user)
+        await crud.save_one(session=session, obj=user)
+        logger.debug("User сохранен в бд")
 
     except exceptions.UniqueViolationError:
         logger.exception("Пользователь с таким tg_id уже существует")

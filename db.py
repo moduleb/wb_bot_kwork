@@ -12,16 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 # Создание асинхронного движка
-engine = create_async_engine(settings.DATABASE_URL, echo=True)
+engine = create_async_engine(settings.DATABASE_URL, echo=False)
 
 # Создание асинхронной сессии
 AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
-
 
 async def check_database_connection() -> bool | None:
     """Проверка подключения к базе данных."""
     try:
         async with AsyncSessionLocal() as session:
+        # async with engine.begin() as session:
 
             # получаем полную строку подключения
             logger.debug("Строка подключения к базе данных:\n\t%s", session.bind.url)

@@ -33,13 +33,14 @@ class User(Base):
     # Связь с товарами
     items = relationship("Item",
                          secondary=user_item_association,
-                         back_populates="users")
+                         back_populates="users",
+                         lazy="joined")
 
     def __repr__(self) -> str:
-        return f"Class: {self.__class__.__name__}\n\
+        return f"\nClass: {self.__class__.__name__}\n\
         id: {self.id}\n\
-        tg_id: {self.tg_id}"
-
+        tg_id: {self.tg_id}\n\
+        items: {self.items}"
 
 class Item(Base):
     """Таблица с товарами."""
@@ -57,9 +58,15 @@ class Item(Base):
                      nullable=False)
     market_name = Column(String)
     photo_tg_id = Column(String)
-    photo_url = Column(String)
 
     # Связь с пользователями
     users = relationship("User",
                          secondary=user_item_association,
-                         back_populates="items")
+                         back_populates="items",
+                         lazy="joined")
+
+    def __repr__(self) -> str:
+        return f"\nClass: {self.__class__.__name__}\n\
+            id: {self.id}\n\
+            title: {self.title}\n\
+            users: {self.users}"
