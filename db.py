@@ -11,6 +11,10 @@ from settings import settings
 logger = logging.getLogger(__name__)
 
 
+class DBError(Exception):
+    """Исключение для ошибок базы данных."""
+
+
 # Создание асинхронного движка
 engine = create_async_engine(settings.DATABASE_URL, echo=False)
 
@@ -34,33 +38,3 @@ async def check_database_connection() -> bool | None:
 
     except OSError:
         return False
-
-
-class DBError(Exception):
-    """Исключение для ошибок базы данных."""
-
-    @staticmethod
-    def connection_error():  # noqa: ANN205
-        return DBError("Ошибка подключения к базе данных.")
-
-    @staticmethod
-    def query_error():  # noqa: ANN205
-        return DBError("Ошибка выполнения запроса к базе данных.")
-
-    @staticmethod
-    def not_found_error():  # noqa: ANN205
-        return DBError("Запись не найдена в базе данных.")
-
-    @staticmethod
-    def not_null_constrain():  # noqa: ANN205
-        return DBError("Заолнены не все поля в модели Item")
-
-
-
-
-class DBDublicateError(DBError):
-    """Исключение при дублировании записи в базу даннх."""
-
-    @staticmethod
-    def dublicate_error():  # noqa: ANN205
-        return DBDublicateError("")

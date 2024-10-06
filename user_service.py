@@ -1,52 +1,60 @@
 import logging
 
 from asyncpg import exceptions
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import crud
-from sqlalchemy.ext.asyncio import AsyncSession
 from models import User
 
 logger = logging.getLogger(__name__)
 
 
-async def get_or_create(tg_id: int, session: AsyncSession, load_relationships=False) -> User:
-    """Поиск пользователя. Если не найден, создаем и сохраняем в бд."""
+async def get_or_create(session: AsyncSession, user_tg_id: int) -> User:
+    """Поиск пользователя в базе данных.
+        Если не найден, создаем и сохраняем в бд.
+
+    Returns:
+        Возвращает экземпляр User
+
+    """
     # Ищем пользователя в базе
-    user = await _get_user_by_tg_id(tg_id, session, load_relationships)
-    # logger.debug("Получен объект user: %s", user)
+    user = await _get_user_by_tg_id(session, user_tg_id)
 
     # Создаем пользователя если не существует и сохраняем в бд.
     if not user:
-        user = _create_user(tg_id=tg_id)
+        user = _create_user(user_tg_id)
         logger.debug("Создaн объект User: %s", user)
 
-        await _save_user(user, session)
+        await save_user(session, user)
         logger.debug("Объект User успешно сохранен")
-
-    assert user is not None, "User должен быть найден в базе данных или создан"
 
     return user
 
 
-async def _get_user_by_tg_id(tg_id: int, session: AsyncSession, load_relationships) -> User | None:
-    """Поиск пользователя по id."""
-    objs_list = await crud.get_many_by_filters(session=session,
-                                                model=User,
-                                                tg_id=tg_id,
-                                               load_relationships=load_relationships)
+async def _get_user_by_tg_id(session: AsyncSession, user_tg_id: int) -> User | None:
+    """Поиск пользователя по id.
 
-    return objs_list[0] if objs_list else None
+    Returns:
+        Возвращает экземляр User если найден, иначе None.
 
-
-def _create_user(tg_id: int) -> User:
-    """Создаем объект User."""
-    return User(tg_id=tg_id)
+    """
+    return await crud.get_one_by_filters(session, model=User, tg_id=user_tg_id)
 
 
-async def _save_user(user: User, session: AsyncSession) -> None:
-    """Сохраняем пользователя в бд."""
+def _create_user(user_tg_id: int) -> User:
+    """Создаем объект User.
+
+    Returns:
+        Возвращает созданный экземляр User.
+
+    """
+    return User(tg_id=user_tg_id)
+
+
+async def save_user(session: AsyncSession, user: User) -> None:
+    """Сохраняем пользователя в базу данных."""
     try:
-        await crud.save_one(session=session, obj=user)
+        await crud.save_one(session, user)
         logger.debug("User сохранен в бд")
 
     except exceptions.UniqueViolationError:

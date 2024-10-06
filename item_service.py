@@ -5,48 +5,55 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import crud
-from db import DBDublicateError, DBError
+from db import DBError
 from models import Item
 
 logger = logging.getLogger(__name__)
 
 
-async def get(item_data: dict, session: AsyncSession) -> Item | None:
+async def get_item(session: AsyncSession, item_data: dict) -> Item | None:
+    """Ищем item в базе данных.
 
-    logger.debug("Поиск уже существующего item в базе данных:\n"
-                "Title: %s", item_data.get("title"))
+    Returns:
+       Возвращает экземлпяр Item или None если ничего не найдено.
 
-    items = await crud.get_many_by_filters(session=session,
-                                           model=Item,
-                                           load_relationships=True,
-                                           **item_data)
-
-    logger.debug("Найдены объекты: %s", items)
-
-    return items[0] if items else None
+    """
+    return await crud.get_one_by_filters(session, model=Item, **item_data)
 
 
-def create(item_data: dict):
+def create(item_data: dict) -> Item:
+    """Создает объект Item.
+
+    Returns:
+        Возвращает экземлпяр Item
+
+    """
     return Item(**item_data)
 
 
-async def save(item: Item, session: AsyncSession) -> None:
-    """Сохраняем товар в бд."""
+async def save(session: AsyncSession, item: Item) -> None:
+    """Сохраняем товар в бд.
+
+    Raises:
+        DBError:
+            1. Вызывается при попытке сохранить экземляр item,
+            когда не заполенны поля с ограничением'not null'.
+
+            2. При попытки сохранения идентичного item.
+
+        Ошибки подключения к базе данных обработаем на уровень выше.
+
+    """
     try:
-        await crud.save_one(session=session,
-                            obj=item)
+        await crud.save_one(session, obj=item)
 
     except exceptions.NotNullViolationError as e:
-        logger.exception("Ошибка при сохранении экземпляра Item\n"
+        msg = ("Ошибка при сохранении экземпляра Item\n"
                      "Не все поля заполнены\n")
-        raise DBError.not_null_constrain() from e
+        logger.exception(msg)
+        raise DBError(msg) from e
 
-    except IntegrityError:
-        logger.debug("Товар уже существует")
-        raise DBDublicateError
-
-
-async def delete_all(session: AsyncSession, items: list) -> None:
-
-    logger.debug("Удаляем items: %s", items)
-    await crud.delete_many(session=session, objs=items)
+    except IntegrityError as e:
+        msg = ("Товар уже существует")
+        logger.exception(msg)
+        raise DBError(msg) from e

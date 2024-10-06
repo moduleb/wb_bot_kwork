@@ -1,12 +1,12 @@
 import asyncio
 import logging
 
-from aiogram import Bot, F, Router, filters, fsm, types
+from aiogram import Bot, F, Router, filters, types
 
 import item_service
 import kb
 import user_service
-from db import AsyncSessionLocal, DBDublicateError, DBError
+from db import AsyncSessionLocal, DBError
 from parser_async import ParserError, UrlError, get_item_info
 from text import errors, messages
 
@@ -30,9 +30,7 @@ async def get_all_items(msg: types.Message):
 
     try:
         async with AsyncSessionLocal() as session:
-            user = await user_service.get_or_create(session=session,
-                                                    tg_id=user_tg_id,
-                                                    load_relationships=True)
+            user = await user_service.get_or_create(session, user_tg_id=user_tg_id)
 
     except (OSError, asyncio.exceptions.TimeoutError):
         logger.exception("База данных недоступна")
@@ -62,8 +60,6 @@ async def get_all_items(msg: types.Message):
                                 reply_markup=kb.delete(item.id))
 
 
-
-
 @router.callback_query(F.data.startswith("del"))
 async def delete(callback: types.CallbackQuery):
 
@@ -72,9 +68,7 @@ async def delete(callback: types.CallbackQuery):
 
     try:
         async with AsyncSessionLocal() as session:
-            user = await user_service.get_or_create(session=session,
-                                                    tg_id=user_tg_id,
-                                                    load_relationships=True)
+            user = await user_service.get_or_create(session, user_tg_id=user_tg_id)
 
     except (OSError, asyncio.exceptions.TimeoutError):
         logger.exception("База данных недоступна")
@@ -88,18 +82,14 @@ async def delete(callback: types.CallbackQuery):
         for i, item in enumerate(user.items):
             if item.id == item_id:
                 user.items.pop(i)
-                await user_service._save_user(user=user, session=session)
+                await user_service.save_user(user=user, session=session)
                 await callback.message.delete()
                 break
 
 
-
-
-
-
+# ANY MESSAGE
 @router.message()
-async def parse_url_handler(msg: types.Message,
-                        state: fsm.context.FSMContext):
+async def parse_url_handler(msg: types.Message):
 
     user_tg_id = msg.from_user.id
     origin_url: str = msg.text
@@ -109,22 +99,27 @@ async def parse_url_handler(msg: types.Message,
     try:
         async with AsyncSessionLocal() as session:
             # async with engine.begin() as session:
-            user = await user_service.get_or_create(session=session, tg_id=user_tg_id)
+            user = await user_service.get_or_create(session, user_tg_id=user_tg_id)
 
-            item_dict = await get_item_info(origin_url)
+            item_data_dict = await get_item_info(origin_url)
+            logger.debug("Получена информацию от парсера: %s", item_data_dict)
 
             # Извлекаем photo_url тк в модели Item нет такого поля.
-            photo_url = item_dict.pop("photo_url")
+            photo_url = item_data_dict.pop("photo_url")
 
-            item = await item_service.get(item_dict, session=session)
+            item = await item_service.get_item(session, item_data_dict)
 
             if item:
                 if user in item.users:
-                    raise DBDublicateError
+                    await msg.answer(text=errors.item_dublicate_error)
+                    logger.debug("Товар уже есть в списке у пользователя, return")
+                    return
             else:
-                item = item_service.create(item_dict)
+                item = item_service.create(item_data_dict)
+                logger.debug("Создаен новый объект Item: %s", item)
 
             item.users.append(user)
+            logger.debug("Прикрепляем user к item")
 
             input_file = types.input_file.URLInputFile(photo_url)
 
@@ -141,7 +136,7 @@ async def parse_url_handler(msg: types.Message,
 
             item.photo_tg_id = photo_tg_id
 
-            await item_service.save(session=session, item=item)
+            await item_service.save(session, item)
 
             await msg.answer(text="Товар добавлен")
 
@@ -152,9 +147,6 @@ async def parse_url_handler(msg: types.Message,
 
     except ParserError:
         await msg.answer(text=errors.get_item_info_error)
-
-    except DBDublicateError:
-        await msg.answer(text=errors.item_dublicate_error)
 
     except DBError:
         await msg.answer(text=errors.service_unavailable_error)

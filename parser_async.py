@@ -1,5 +1,4 @@
 import logging
-from platform import processor
 from urllib.parse import urlparse
 
 import aiohttp
