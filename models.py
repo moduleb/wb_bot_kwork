@@ -34,7 +34,7 @@ class User(Base):
     items = relationship("Item",
                          secondary=user_item_association,
                          back_populates="users",
-                         lazy="joined")
+                         lazy="subquery")
 
     def __repr__(self) -> str:
         return f"\nClass: {self.__class__.__name__}\n\
@@ -63,7 +63,7 @@ class Item(Base):
     users = relationship("User",
                          secondary=user_item_association,
                          back_populates="items",
-                         lazy="joined")
+                         lazy="subquery")
 
     def __repr__(self) -> str:
         return f"\nClass: {self.__class__.__name__}\n\

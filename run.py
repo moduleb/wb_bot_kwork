@@ -11,10 +11,14 @@ import sys
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import AiogramError
 from aiogram.fsm.storage.memory import MemoryStorage
+
 from commands import user_commands
-from settings import settings
-from handlers import router
 from db import check_database_connection
+from handlers.list_handler import router as list_router
+from handlers.delete_handler import router as delete_router
+from handlers.any_msg_handler import router as any_msg_router
+from handlers.main_handler import router
+from settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +36,10 @@ async def main():
 
     try:
         # Решистрируем роутер
+        dp.include_router(delete_router)
+        dp.include_router(list_router)
         dp.include_router(router)
+        dp.include_router(any_msg_router)
 
         # Устанавливаем команды
         await bot.set_my_commands(user_commands)
