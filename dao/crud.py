@@ -9,24 +9,28 @@ from dao.models import Base
 
 logger = logging.getLogger(__name__)
 
+# Определяем тип переменной для модели
+M = TypeVar("M", bound=Base)
+
 
 # ----- CREATE ------------------------------------------------------------------------
-async def save_one(session: AsyncSession, obj: object) -> None:
+async def save_one(session: AsyncSession, obj: M) -> None:
     """Сохраняет объект в базу данных."""
     session.add(obj)
     await session.commit()
 
 
-async def save_many(session: AsyncSession, objs: list[object]) -> None:
+async def save_all(session: AsyncSession, objs: list[type[M]]) -> None:
     """Сохраняет объекты в базу данных."""
     session.add_all(objs)
     await session.commit()
 
 
 # ----- READ --------------------------------------------------------------------------
-
-# Определяем тип переменной для модели
-M = TypeVar("M", bound=Base)
+async def get_all(session: AsyncSession, model: type[M]) -> list[M]:
+    query = select(model)
+    result = await session.execute(query)
+    return list(result.scalars().all())
 
 
 async def get_one_by_filters(session: AsyncSession,

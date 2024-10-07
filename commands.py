@@ -1,7 +1,8 @@
 from aiogram import types
+from text.commands import commands
 
-user_commands = [
-    types.BotCommand(command="/start", description="Запустить бота"),
-    types.BotCommand(command="/list", description="Список отслеживаний"),
-    # types.BotCommand(command="/help", description="Справка"),
-]
+user_commands = []
+for command, description in commands.items():
+    user_commands.append(
+        types.BotCommand(command=command, description=description),
+    )

@@ -91,7 +91,6 @@ def _extract_product_info(data: dict) -> dict:
         return {
             "price": _get_price(product_data),
             "title": product_data["name"],
-            # "photo_url": "https://fs19.net/wp-content/uploads/2019/10/AjnjPlaceablePack-v1.05.jpg"
         }
 
     except (IndexError, KeyError) as e:

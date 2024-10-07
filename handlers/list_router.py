@@ -44,9 +44,13 @@ async def get_all_items(msg: types.Message):
             text = messages.item_info.format(title=item.title,
                                     origin_url=item.origin_url,
                                     price=item.price)
+            try:
 
-            await bot.send_photo(chat_id=chat_id,
-                                photo=item.photo_tg_id,
-                                caption=text,
-                                parse_mode="Markdown",
-                                reply_markup=command_list_kb.delete(item.id))
+                await bot.send_photo(chat_id=chat_id,
+                                    photo=item.photo_tg_id,
+                                    caption=text,
+                                    parse_mode="Markdown",
+                                    reply_markup=command_list_kb.delete(item.id))
+            except Exception:
+                logger.exception("Ошибка при отправлении фото по photo_tg_id: %s",
+                                 item.photo_tg_id)
