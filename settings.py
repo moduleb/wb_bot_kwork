@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_PORT: int = 5432
 
-    PRICE_UPDATE_TIMEOUT_IN_SEC: int = 5
+    PRICE_UPDATE_TIMEOUT_IN_SEC: int = 1800
 
     @property
     def DATABASE_URL(self) -> str:
