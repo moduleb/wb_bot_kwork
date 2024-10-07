@@ -1,6 +1,6 @@
 import logging
 from urllib.parse import urlparse
-
+from utills.parser_photo import get_photo_url
 import aiohttp
 
 logger = logging.getLogger(__name__)
@@ -18,18 +18,20 @@ async def get_item_info(origin_url: str) -> dict:
     base_url = "https://card.wb.ru/cards/v2/detail?appType=1&curr=rub&dest=-1257786&spp=30&nm={item_id}"
 
     _item_id = _get_item_id(origin_url)
+    photo_url = get_photo_url(_item_id)
     api_url = base_url.format(item_id=_item_id)
     _rqquest_data = await _get_data(api_url)
 
     item_info_dict = _extract_product_info(_rqquest_data)
 
+    item_info_dict["photo_url"] = photo_url
     item_info_dict["origin_url"] = origin_url
     item_info_dict["api_url"] = api_url
 
     return item_info_dict
 
 
-def _get_item_id(url: str) -> str:
+def _get_item_id(url: str) -> int:
     """Извлекает item_id из origin_url."""
     result = urlparse(url)
 
@@ -44,8 +46,15 @@ def _get_item_id(url: str) -> str:
         logger.debug(msg)
         raise UrlError(msg)
 
-    # Возвращаем item_id
-    return path_segments[2]
+    item_id = path_segments[2]
+
+    try:
+        return int(item_id)
+
+    except ValueError as e:
+        msg = "Полученный 'item_id' не является числом"
+        logger.exception(msg)
+        raise ParserError(msg) from e
 
 
 async def _get_data(api_url: str) -> dict:
@@ -82,8 +91,7 @@ def _extract_product_info(data: dict) -> dict:
         return {
             "price": _get_price(product_data),
             "title": product_data["name"],
-            # "photo_url": product_data["photo_url"]
-            "photo_url": "https://fs19.net/wp-content/uploads/2019/10/AjnjPlaceablePack-v1.05.jpg"
+            # "photo_url": "https://fs19.net/wp-content/uploads/2019/10/AjnjPlaceablePack-v1.05.jpg"
         }
 
     except (IndexError, KeyError) as e:

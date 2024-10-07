@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Router, types
+from aiohttp.client_exceptions import ClientResponseError
 from dao import item_service, user_service
 from db import AsyncSessionLocal, DBError
 from text import errors, messages
@@ -59,16 +60,21 @@ async def parse_url_handler(msg: types.Message):
                                             origin_url=item.origin_url,
                                             price=item.price)
 
-            sent_msg: types.Message = await bot.send_photo(chat_id=chat_id,
-                                            photo=input_file,
-                                            caption=text,
-                                            parse_mode="Markdown")
+            try:
+                sent_msg: types.Message = await bot.send_photo(chat_id=chat_id,
+                                                photo=input_file,
+                                                caption=text,
+                                                parse_mode="Markdown")
 
-            photo_tg_id = sent_msg.photo[-1].file_id
+                photo_tg_id = sent_msg.photo[-1].file_id
 
-            item.photo_tg_id = photo_tg_id
+                item.photo_tg_id = photo_tg_id
 
-            await item_service.save(session, item)
+                await item_service.save(session, item)
+
+            except ClientResponseError as e:
+                logger.warning("Невозможно загрузить изображение\n"
+                    "Error: %e", e)
 
             await msg.answer(text="Товар добавлен")
 
