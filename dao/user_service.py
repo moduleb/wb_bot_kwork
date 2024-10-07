@@ -23,10 +23,12 @@ async def get_or_create(session: AsyncSession, user_tg_id: int) -> User:
     # Создаем пользователя если не существует и сохраняем в бд.
     if not user:
         user = _create_user(user_tg_id)
-        logger.debug("Создaн объект User: %s", user)
+        user_id = user.id
+        logger.debug("Создaн объект User, id: %s", user_id)
 
         await save_user(session, user)
-        logger.debug("Объект User успешно сохранен")
+        user_id = user.id
+        logger.debug("Объект User успешно сохранен, id: %s", user_id)
 
     return user
 

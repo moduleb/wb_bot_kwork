@@ -3,7 +3,7 @@ import logging
 
 from aiogram import Bot, Router, filters, types
 
-import kb
+from keyboards import command_list_kb
 from dao import user_service
 from db import AsyncSessionLocal
 from text import errors, messages
@@ -49,4 +49,4 @@ async def get_all_items(msg: types.Message):
                                 photo=item.photo_tg_id,
                                 caption=text,
                                 parse_mode="Markdown",
-                                reply_markup=kb.delete(item.id))
+                                reply_markup=command_list_kb.delete(item.id))

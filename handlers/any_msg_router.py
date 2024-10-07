@@ -2,11 +2,10 @@ import asyncio
 import logging
 
 from aiogram import Bot, Router, types
-
 from dao import item_service, user_service
 from db import AsyncSessionLocal, DBError
-from parser_async import ParserError, UrlError, get_item_info
 from text import errors, messages
+from utills.parser_async import ParserError, UrlError, get_item_info
 
 router = Router()
 
@@ -25,24 +24,31 @@ async def parse_url_handler(msg: types.Message):
     try:
         async with AsyncSessionLocal() as session:
             # async with engine.begin() as session:
-            user = await user_service.get_or_create(session, user_tg_id=user_tg_id)
+            user = await user_service.get_or_create(session, user_tg_id)
+            user_id = user.id
+            logger.debug("Получен экземпляр User, id: %s", user_id)
 
-            item_data_dict = await get_item_info(origin_url)
-            logger.debug("Получена информацию от парсера: %s", item_data_dict)
+            item_data_dict: dict = await get_item_info(origin_url)
+            logger.debug("Получена информация от парсера: %s", item_data_dict)
 
             # Извлекаем photo_url тк в модели Item нет такого поля.
             photo_url = item_data_dict.pop("photo_url")
 
-            item = await item_service.get_item(session, item_data_dict)
+            item = await item_service.get_item(session, origin_url)
 
             if item:
+                item_id = item.id
+                users_count = len(item.users)
+                logger.debug("Получен экземпляр Item, id: %s\n"
+                                "\tlen(item.users): %d", item_id, users_count)
+
                 if user in item.users:
                     await msg.answer(text=errors.item_dublicate_error)
                     logger.debug("Товар уже есть в списке у пользователя, return")
                     return
             else:
                 item = item_service.create(item_data_dict)
-                logger.debug("Создаен новый объект Item: %s", item)
+                logger.debug("Создаен новый объект Item")
 
             item.users.append(user)
             logger.debug("Прикрепляем user к item")

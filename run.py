@@ -14,10 +14,10 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from commands import user_commands
 from db import check_database_connection
-from handlers.list_handler import router as list_router
-from handlers.delete_handler import router as delete_router
-from handlers.any_msg_handler import router as any_msg_router
-from handlers.main_handler import router
+from handlers.list_router import router as list_router
+from handlers.delete_router import router as delete_router
+from handlers.any_msg_router import router as any_msg_router
+from handlers.main_router import router
 from settings import settings
 
 logger = logging.getLogger(__name__)

@@ -46,11 +46,12 @@ async def get_one_by_filters(session: AsyncSession,
 
     # Выполняем запрос
     result = await session.execute(query)
-    return result.scalars().first()
+    result_tuple = result.first()
+    return result_tuple[0] if result_tuple else None
 
 
 # ----- DELETE ------------------------------------------------------------------------
 async def delete(session: AsyncSession, obj: object) -> None:
     """Удаляет объект из базы данных."""
-    await session.delete(obj)
+    session.delete(obj)
     await session.commit()

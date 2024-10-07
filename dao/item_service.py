@@ -11,15 +11,15 @@ from db import DBError
 logger = logging.getLogger(__name__)
 
 
-async def get_item(session: AsyncSession, item_data: dict) -> Item | None:
+async def get_item(session: AsyncSession, origin_url: str) -> Item | None:
     """Ищем item в базе данных.
 
     Returns:
        Возвращает экземлпяр Item или None если ничего не найдено.
 
     """
-    return await crud.get_one_by_filters(session, model=Item, **item_data)
-
+    return await crud.get_one_by_filters(session, model=Item, origin_url=origin_url)
+    
 
 def create(item_data: dict) -> Item:
     """Создает объект Item.
@@ -54,6 +54,6 @@ async def save(session: AsyncSession, item: Item) -> None:
         raise DBError(msg) from e
 
     except IntegrityError as e:
-        msg = ("Товар уже существует")
+        msg = ("Item уже существует")
         logger.exception(msg)
         raise DBError(msg) from e
