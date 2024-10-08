@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     TOKEN: str
     # ADMIN_ID: int
-    LOG_LEVEL: str = "ERROR"
+    LOG_LEVEL: str = "INFO"
 
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str

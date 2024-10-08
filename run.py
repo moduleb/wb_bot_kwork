@@ -16,8 +16,8 @@ from db import check_database_connection
 from handlers.any_msg_router import router as any_msg_router
 from handlers.delete_router import router as delete_router
 from handlers.list_router import router as list_router
-from handlers.test_router import router as test_router
 from handlers.main_router import router
+from handlers.test_router import router as test_router
 from settings import settings
 from utills.scheduler import loop_check_price
 
@@ -37,7 +37,8 @@ async def main():
 
     try:
         # Запускаем процесс фонового отслеживания цен
-        task = asyncio.create_task(loop_check_price(bot, settings.PRICE_UPDATE_TIMEOUT_IN_SEC))
+        task = asyncio.create_task(loop_check_price(bot,
+                                                settings.PRICE_UPDATE_TIMEOUT_IN_SEC))
 
         # Решистрируем роутер
         dp.include_router(test_router)
@@ -65,13 +66,13 @@ async def main():
     except AiogramError:
         logger.exception("Произошла ошибка при запуске бота")
 
-    finally:
-        # Останавливаем фоновое отслеживание цен
+    else:
         task.cancel()
+        logger.info("Функция 'Check price' остановлена.")
 
+    finally:
         # Закрываем сессию бота
         await bot.session.close()
-
         logger.info("Бот остановлен.")
 
 
