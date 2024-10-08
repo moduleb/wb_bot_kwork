@@ -3,8 +3,7 @@
 import logging
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from settings import settings
 
@@ -19,13 +18,15 @@ class DBError(Exception):
 engine = create_async_engine(settings.DATABASE_URL, echo=False)
 
 # Создание асинхронной сессии
-AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+# AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+
 
 async def check_database_connection() -> bool | None:
     """Проверка подключения к базе данных."""
     try:
         async with AsyncSessionLocal() as session:
-        # async with engine.begin() as session:
+            # async with engine.begin() as session:
 
             # получаем полную строку подключения
             logger.debug("Строка подключения к базе данных:\n\t%s", session.bind.url)
