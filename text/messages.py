@@ -1,6 +1,6 @@
 from text.commands import commands
 
-help_msg = "\n".join(f"/{command}:\t{description}" for command, description in commands.items())
+help_msg = "\n".join(f"/{command}\t{description}" for command, description in commands.items())
 
 item_info = (
     "[{title}]({origin_url})\n"

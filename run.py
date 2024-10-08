@@ -17,7 +17,7 @@ from handlers.any_msg_router import router as any_msg_router
 from handlers.delete_router import router as delete_router
 from handlers.list_router import router as list_router
 from handlers.main_router import router
-from handlers.test_router import router as test_router
+# from handlers.test_router import router as test_router
 from settings import settings
 from utills.scheduler import loop_check_price
 
@@ -41,7 +41,7 @@ async def main():
                                                 settings.PRICE_UPDATE_TIMEOUT_IN_SEC))
 
         # Решистрируем роутер
-        dp.include_router(test_router)
+        # dp.include_router(test_router)
         dp.include_router(delete_router)
         dp.include_router(list_router)
         dp.include_router(router)
