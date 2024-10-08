@@ -1,7 +1,8 @@
 import logging
 from urllib.parse import urlparse
-from utills.parser_photo import get_photo_url
+
 import aiohttp
+from utills.parser_photo import get_photo_url
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,7 @@ def _extract_product_info(data: dict) -> dict:
 
     try:
         product_data = data["data"]["products"][0]
+        # import pdb; pdb.set_trace()
 
         return {
             "price": _get_price(product_data),
@@ -101,7 +103,16 @@ def _extract_product_info(data: dict) -> dict:
 
 def _get_price(product_data: dict) -> float:
     """Извлекаем price."""
-    price = product_data["sizes"][0]["price"]["total"]
+    # Если размера нет, то не будет ключа 'price'
+    # Поэтому перебираем все размеры, пока не найдем 'price'
+    price = 0
+    if sizes := product_data.get("sizes"):
+        for size in sizes:
+            if prices := size.get("price"):
+                price = prices.get("total")
+                break
+
+    # price = product_data["sizes"][0]["price"]["total"]
 
     if price <= 0:
         msg = "Полученный price <= 0: %s", price

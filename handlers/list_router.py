@@ -2,10 +2,9 @@ import asyncio
 import logging
 
 from aiogram import Bot, Router, filters, types
-
-from keyboards import command_list_kb
 from dao import user_service
 from db import AsyncSessionLocal
+from keyboards import command_list_kb
 from text import errors, messages
 
 router = Router()
