@@ -22,6 +22,11 @@ async def delete(callback: types.CallbackQuery):
         async with AsyncSessionLocal() as session:
             user = await user_service.get_or_create(session, user_tg_id=user_tg_id)
 
+            # Проверка доступа
+            if not is_admin(user_tg_id) and not user.is_active:
+                await msg.answer(errors.access_denied)
+                return
+
     except (OSError, asyncio.exceptions.TimeoutError):
         logger.exception("База данных недоступна")
         await callback.answer(text=errors.service_unavailable_error)

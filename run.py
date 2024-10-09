@@ -11,12 +11,15 @@ import sys
 from aiogram import Bot, Dispatcher
 from aiogram.exceptions import AiogramError
 from aiogram.fsm.storage.memory import MemoryStorage
-from commands import user_commands
+from commands import set_commands
 from db import check_database_connection
+from handlers.admin.add import router as admin_add_router
+from handlers.admin.delete import router as admin_delete_router
 from handlers.any_msg_router import router as any_msg_router
 from handlers.delete_router import router as delete_router
 from handlers.list_router import router as list_router
 from handlers.main_router import router
+
 # from handlers.test_router import router as test_router
 from settings import settings
 from utills.scheduler import loop_check_price
@@ -45,10 +48,12 @@ async def main():
         dp.include_router(delete_router)
         dp.include_router(list_router)
         dp.include_router(router)
+        dp.include_router(admin_add_router)
+        dp.include_router(admin_delete_router)
         dp.include_router(any_msg_router)
 
         # Устанавливаем команды
-        await bot.set_my_commands(user_commands)
+        await set_commands(bot)
 
         await bot.delete_webhook(drop_pending_updates=True)
         """Dы указываете боту удалить текущий вебхук.

@@ -1,6 +1,18 @@
-from text.commands import commands
+greeting_admin_msg = "Hello, Admin!"
 
-help_msg = "\n".join(f"/{command}\t{description}" for command, description in commands.items())
+greeting_user_msg = ("Hello!\n"
+                   "Я бот, отслеживающий цены на Wildberries\n"
+                   "Просто пришли мне ссылку на товар и я сообщю ,когда цена изменится.")
+
+
+help_user_msg = ("/help\tСправка\n"
+    "/list\tСписок отслеживаний")
+
+help_admib_msg = ("/help\tСправка\n"
+    "/list\tСписок отслеживаний"
+    "/add\tДобавить пользователя в бот, ожидает ник или id.\n"
+    "/delete\tЗапретить пользователю пользоваться ботом.")
+
 
 item_info = (
     "[{title}]({origin_url})\n"

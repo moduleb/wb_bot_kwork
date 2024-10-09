@@ -110,17 +110,18 @@ def _get_price(product_data: dict) -> float:
         for size in sizes:
             if prices := size.get("price"):
                 price = prices.get("total")
-                break
+                if price > 0:
+                    break
 
     # price = product_data["sizes"][0]["price"]["total"]
 
-    if price <= 0:
-        msg = "Полученный price <= 0: %s", price
-        logger.exception(msg)
-        raise ParserError(msg)
+    # if price <= 0:
+    #     msg = "Полученный price <= 0: %s", price
+    #     logger.exception(msg)
+    #     raise ParserError(msg)
 
     try:
-        return float(price) / 100  # Возвращаем цену, если она больше 0
+        return float(price) / 100  # Возвращаем цену
 
     except ValueError as e:
         msg = "Полученный 'price' не является числом"

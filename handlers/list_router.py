@@ -6,6 +6,8 @@ from dao import user_service
 from db import AsyncSessionLocal
 from keyboards import command_list_kb
 from text import errors, messages
+from utills.checkings import is_admin
+from dao.models import User
 
 router = Router()
 
@@ -21,7 +23,12 @@ async def get_all_items(msg: types.Message):
 
     try:
         async with AsyncSessionLocal() as session:
-            user = await user_service.get_or_create(session, user_tg_id=user_tg_id)
+            user: User = await user_service.get_or_create(session, user_tg_id=user_tg_id)
+
+            # Проверка доступа
+            if not is_admin(user_tg_id) and not user.is_active:
+                await msg.answer(errors.access_denied)
+                return
 
     except (OSError, asyncio.exceptions.TimeoutError):
         logger.exception("База данных недоступна")

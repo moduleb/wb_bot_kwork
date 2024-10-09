@@ -9,6 +9,16 @@ from dao.models import User
 logger = logging.getLogger(__name__)
 
 
+async def get_by_filter(session: AsyncSession, **filters) -> User | None:
+    """Поиск пользователя по id.
+
+    Returns:
+        Возвращает экземляр User если найден, иначе None.
+
+    """
+    return await crud.get_one_by_filters(session, model=User, **filters)
+
+
 async def get_or_create(session: AsyncSession, user_tg_id: int) -> User:
     """Поиск пользователя в базе данных.
         Если не найден, создаем и сохраняем в бд.

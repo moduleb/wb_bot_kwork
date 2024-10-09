@@ -36,8 +36,7 @@ async def notify_price_changes(bot: Bot):
                 item_info_dict = parser_async._extract_product_info(data)
                 new_price: float = item_info_dict.get("price")
                 old_price: float = item.price
-                if ld_price == new_price:
-                    logger.debug("Цена не изменилась у item_id: %s", item.id)
+                if old_price == new_price:
                     continue
 
             except parser_async.ParserError as e:

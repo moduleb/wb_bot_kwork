@@ -1,7 +1,7 @@
 # modes.py
 """Database Models."""
 
-from sqlalchemy import BigInteger, Column, Float, ForeignKey, Integer, String, Table, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, Column, Float, ForeignKey, Integer, String, Table, UniqueConstraint, BOOLEAN
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
@@ -29,6 +29,10 @@ class User(Base):
                    unique=True,
                    nullable=False,
                    index=True)
+    is_active = Column(BOOLEAN,
+                       # nullable=False,
+                       default=False)
+    username = Column(String)
 
     # Связь с товарами
     items = relationship("Item",
@@ -41,6 +45,7 @@ class User(Base):
         id: {self.id}\n\
         tg_id: {self.tg_id}\n\
         items: {self.items}"
+
 
 class Item(Base):
     """Таблица с товарами."""
