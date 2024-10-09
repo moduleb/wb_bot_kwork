@@ -6,6 +6,7 @@ from aiogram import F, Router, types
 from dao import user_service
 from db import AsyncSessionLocal
 from text import errors
+from utills.checkings import is_admin
 
 router = Router()
 

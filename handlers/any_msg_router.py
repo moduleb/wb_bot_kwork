@@ -31,7 +31,7 @@ async def parse_url_handler(msg: types.Message):
             logger.debug("Получен экземпляр User, id: %s", user_id)
 
             # Проверка доступа
-            if not is_admin(user_tg_id) and user.is_active:
+            if not is_admin(user_tg_id) and not user.is_active:
                 await msg.answer(errors.access_denied)
                 return
 
