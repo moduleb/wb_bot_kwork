@@ -1,7 +1,7 @@
 # modes.py
 """Database Models."""
 
-from sqlalchemy import BigInteger, Boolean, Column, Float, ForeignKey, Integer, String, Table, UniqueConstraint, BOOLEAN
+from sqlalchemy import BigInteger, Column, Float, ForeignKey, Integer, String, Table, UniqueConstraint, BOOLEAN
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
