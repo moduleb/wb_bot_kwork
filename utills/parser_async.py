@@ -115,10 +115,10 @@ def _get_price(product_data: dict) -> float:
 
     # price = product_data["sizes"][0]["price"]["total"]
 
-    # if price <= 0:
-    #     msg = "Полученный price <= 0: %s", price
-    #     logger.exception(msg)
-    #     raise ParserError(msg)
+    if price <= 0:
+        msg = "Полученный price <= 0: %s", price
+        logger.exception(msg)
+        raise ParserError(msg)
 
     try:
         return float(price) / 100  # Возвращаем цену
