@@ -6,6 +6,7 @@ from aiohttp.client_exceptions import ClientResponseError
 from dao import item_service, user_service
 from db import AsyncSessionLocal, DBError
 from text import errors, messages
+from utills.checkings import is_admin
 from utills.parser_async import ParserError, UrlError, get_item_info
 
 router = Router()
@@ -28,6 +29,11 @@ async def parse_url_handler(msg: types.Message):
             user = await user_service.get_or_create(session, user_tg_id)
             user_id = user.id
             logger.debug("Получен экземпляр User, id: %s", user_id)
+
+            # Проверка доступа
+            if not is_admin(user_tg_id) and not user.is_active:
+                await msg.answer(errors.access_denied)
+                return
 
             item_data_dict: dict = await get_item_info(origin_url)
             logger.debug("Получена информация от парсера: %s", item_data_dict)

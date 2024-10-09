@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     TOKEN: str
-    # ADMIN_ID: int
+    ADMIN_IDS: list[int]
     LOG_LEVEL: str = "INFO"
 
     POSTGRES_USER: str

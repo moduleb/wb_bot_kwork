@@ -6,6 +6,7 @@ from aiogram import F, Router, types
 from dao import user_service
 from db import AsyncSessionLocal
 from text import errors
+from utills.checkings import is_admin
 
 router = Router()
 
@@ -21,6 +22,11 @@ async def delete(callback: types.CallbackQuery):
     try:
         async with AsyncSessionLocal() as session:
             user = await user_service.get_or_create(session, user_tg_id=user_tg_id)
+
+            # Проверка доступа
+            if not is_admin(user_tg_id) and not user.is_active:
+                await msg.answer(errors.access_denied)
+                return
 
     except (OSError, asyncio.exceptions.TimeoutError):
         logger.exception("База данных недоступна")
