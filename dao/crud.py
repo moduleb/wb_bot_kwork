@@ -57,5 +57,5 @@ async def get_one_by_filters(session: AsyncSession,
 # ----- DELETE ------------------------------------------------------------------------
 async def delete(session: AsyncSession, obj: object) -> None:
     """Удаляет объект из базы данных."""
-    session.delete(obj)
+    await session.delete(obj)
     await session.commit()
