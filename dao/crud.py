@@ -14,7 +14,7 @@ M = TypeVar("M", bound=Base)
 
 
 # ----- CREATE ------------------------------------------------------------------------
-async def save_one(session: AsyncSession, obj: M) -> None:
+async def save_one(session: AsyncSession, obj: type[M]) -> None:
     """Сохраняет объект в базу данных."""
     session.add(obj)
     await session.commit()
