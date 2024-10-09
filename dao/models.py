@@ -1,7 +1,7 @@
 # modes.py
 """Database Models."""
 
-from sqlalchemy import BigInteger, Boolean, Column, Float, ForeignKey, Integer, String, Table, UniqueConstraint, BOOLEAN
+from sqlalchemy import BigInteger, Column, Float, ForeignKey, Integer, String, Table, UniqueConstraint, BOOLEAN
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 
@@ -63,6 +63,7 @@ class Item(Base):
                      nullable=False)
     market_name = Column(String)
     photo_tg_id = Column(String)
+    photo_url = Column(String)
 
     # Связь с пользователями
     users = relationship("User",

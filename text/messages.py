@@ -19,6 +19,9 @@ item_info = (
     "Цена: {price} руб."
 )
 
+item_added = "Товар добавлен"
+
+
 price_changed = (
     "Изменилась цена на товар:\n"
     "[{title}]({origin_url})\n"

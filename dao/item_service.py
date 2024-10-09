@@ -21,7 +21,6 @@ async def get_item(session: AsyncSession, origin_url: str) -> Item | None:
 
     """
     return await crud.get_one_by_filters(session, model=Item, origin_url=origin_url)
-    
 
 def create(item_data: dict) -> Item:
     """Создает объект Item.
@@ -87,3 +86,8 @@ async def save_all(session: AsyncSession, items: list[type[Item]]) -> None:
         msg = ("Item уже существует")
         logger.exception(msg)
         raise DBError(msg) from e
+
+
+async def delete(session: AsyncSession, item: Item) -> None:
+    await crud.delete(session, obj=item)
+    logger.debug("Item, id: %s, удален", item.id)

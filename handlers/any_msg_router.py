@@ -8,6 +8,7 @@ from db import AsyncSessionLocal, DBError
 from text import errors, messages
 from utills.checkings import is_admin
 from utills.parser_async import ParserError, UrlError, get_item_info
+from utills.send_photo_msg import send_photo_by_photo_url, SendPhotoError, send_photo_by_photo_id
 
 router = Router()
 
@@ -38,9 +39,6 @@ async def parse_url_handler(msg: types.Message):
             item_data_dict: dict = await get_item_info(origin_url)
             logger.debug("Получена информация от парсера: %s", item_data_dict)
 
-            # Извлекаем photo_url тк в модели Item нет такого поля.
-            photo_url = item_data_dict.pop("photo_url")
-
             item = await item_service.get_item(session, origin_url)
 
             if item:
@@ -60,31 +58,42 @@ async def parse_url_handler(msg: types.Message):
             item.users.append(user)
             logger.debug("Прикрепляем user к item")
 
-            input_file = types.input_file.URLInputFile(photo_url)
-
             text = messages.item_info.format(title=item.title,
                                             origin_url=item.origin_url,
                                             price=item.price)
 
-            try:
-                sent_msg: types.Message = await bot.send_photo(chat_id=chat_id,
-                                                photo=input_file,
-                                                caption=text,
-                                                parse_mode="Markdown")
+            # Могут быть сохранены объекты без photo_url
+            if not item.photo_url:
+                item.photo_url = item_data_dict["photo_url"]
 
-                photo_tg_id = sent_msg.photo[-1].file_id
+            try:
+                if item.photo_tg_id:
+                    photo_tg_id: str = await send_photo_by_photo_id(
+                        bot=bot,
+                        chat_id=chat_id,
+                        text=text,
+                        photo_url=item.photo_url,
+                        photo_id=item.photo_tg_id,
+                        reply_markup=types.ReplyKeyboardRemove())
+                else:
+                    photo_tg_id: str = await send_photo_by_photo_url(
+                        bot=bot,
+                        chat_id=chat_id,
+                        text=text,
+                        photo_url=item.photo_url,
+                        reply_markup=types.ReplyKeyboardRemove())
 
                 item.photo_tg_id = photo_tg_id
 
                 await item_service.save(session, item)
 
-            except ClientResponseError as e:
-                logger.warning("Невозможно загрузить изображение\n"
-                    "Error: %e", e)
+            except SendPhotoError as e:
+                logger.warning("Невозможно отправить изображение\n"
+                    "Error: %s", str(e))
+                await msg.answer(errors.item_add_err)
 
-            await msg.answer(text="Товар добавлен")
-
-    #     disable_web_page_preview=True)
+            else:
+                await msg.answer(messages.item_added)
 
     except UrlError as e:
         await msg.answer(text=str(e))

@@ -14,7 +14,7 @@ M = TypeVar("M", bound=Base)
 
 
 # ----- CREATE ------------------------------------------------------------------------
-async def save_one(session: AsyncSession, obj: M) -> None:
+async def save_one(session: AsyncSession, obj: type[M]) -> None:
     """Сохраняет объект в базу данных."""
     session.add(obj)
     await session.commit()
@@ -36,7 +36,7 @@ async def get_all(session: AsyncSession, model: type[M]) -> list[M]:
 async def get_one_by_filters(session: AsyncSession,
                             model: type[M],
                             **filters) -> M | None:
-    print(filters)
+
     # Начинаем строить запрос
     query = select(model)
 
@@ -57,5 +57,5 @@ async def get_one_by_filters(session: AsyncSession,
 # ----- DELETE ------------------------------------------------------------------------
 async def delete(session: AsyncSession, obj: object) -> None:
     """Удаляет объект из базы данных."""
-    session.delete(obj)
+    await session.delete(obj)
     await session.commit()

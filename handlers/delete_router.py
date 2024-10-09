@@ -3,7 +3,7 @@ import logging
 
 from aiogram import F, Router, types
 
-from dao import user_service
+from dao import item_service, user_service
 from db import AsyncSessionLocal
 from text import errors
 from utills.checkings import is_admin
@@ -28,6 +28,18 @@ async def delete(callback: types.CallbackQuery):
                 await msg.answer(errors.access_denied)
                 return
 
+            for i, item in enumerate(user.items):
+                if item.id == item_id:
+                    user.items.pop(i)
+                    await user_service.save_user(user=user, session=session)
+
+                    item = await item_service.get_item(session, origin_url=item.origin_url)
+                    item_users = item.users
+                    if not item_users:
+                        await item_service.delete(session, item)
+                    await callback.message.delete()
+                    break
+
     except (OSError, asyncio.exceptions.TimeoutError):
         logger.exception("База данных недоступна")
         await callback.answer(text=errors.service_unavailable_error)
@@ -35,11 +47,3 @@ async def delete(callback: types.CallbackQuery):
     except Exception:
         logger.exception("Unexpected error")
         await callback.answer(text=errors.service_unavailable_error)
-
-    else:
-        for i, item in enumerate(user.items):
-            if item.id == item_id:
-                user.items.pop(i)
-                await user_service.save_user(user=user, session=session)
-                await callback.message.delete()
-                break
