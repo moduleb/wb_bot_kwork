@@ -28,6 +28,13 @@ async def delete(callback: types.CallbackQuery):
                 await msg.answer(errors.access_denied)
                 return
 
+            for i, item in enumerate(user.items):
+                if item.id == item_id:
+                    user.items.pop(i)
+                    await user_service.save_user(user=user, session=session)
+                    await callback.message.delete()
+                    break
+
     except (OSError, asyncio.exceptions.TimeoutError):
         logger.exception("База данных недоступна")
         await callback.answer(text=errors.service_unavailable_error)
@@ -35,11 +42,3 @@ async def delete(callback: types.CallbackQuery):
     except Exception:
         logger.exception("Unexpected error")
         await callback.answer(text=errors.service_unavailable_error)
-
-    else:
-        for i, item in enumerate(user.items):
-            if item.id == item_id:
-                user.items.pop(i)
-                await user_service.save_user(user=user, session=session)
-                await callback.message.delete()
-                break

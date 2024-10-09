@@ -3,10 +3,12 @@ import logging
 from typing import TYPE_CHECKING
 
 from aiogram import Bot
+from aiogram.types import ReplyKeyboardRemove
 from dao import item_service
 from db import AsyncSessionLocal
 from text import messages
 from utills import parser_async
+from utills.send_photo_msg import send_photo_by_photo_id, SendPhotoError
 
 if TYPE_CHECKING:
     from dao.models import Item
@@ -22,12 +24,9 @@ async def notify_price_changes(bot: Bot):
         # Счетчик товаров, у которых изменилась цена
         modified_items_count = 0
         # Список id товаров где была ошибка
-        items_parsing_errors_ids = []
-
+        items_parsing_errors_count = 0
         # Счетчик отправленных сообщений
         sent_messages_count = 0
-        # Счетчик ошибок при отравке сообщений
-        sent_messages_err_count = 0
 
         for item in items:
             try:
@@ -42,7 +41,7 @@ async def notify_price_changes(bot: Bot):
             except parser_async.ParserError as e:
                 logger.warning("Ошибка при парсинге информации о товаре: item.id = %s\n"
                     "Error: %s", item.id, e)
-                items_parsing_errors_ids.append(item.id)
+                items_parsing_errors_count += 1
 
             # Если цена изменилась, отправляем сообщение и обновляем инфо в бд
             else:
@@ -61,36 +60,36 @@ async def notify_price_changes(bot: Bot):
                             title=item.title,
                             origin_url=item.origin_url)
 
-                        await bot.send_photo(chat_id=user.tg_id,
-                                        photo=item.photo_tg_id,
-                                        caption=text,
-                                        parse_mode="Markdown")
+                        await send_photo_by_photo_id(
+                            bot=bot,
+                            chat_id=user.tg_id,
+                            photo_id=item.photo_tg_id,
+                            photo_url=item.photo_url,
+                            text=text,
+                            reply_markup=ReplyKeyboardRemove())
 
-                    except Exception:
-                        logger.exception("Ошибка при отправке сообщения с фото по "
-                                            "photo_tg_id: %s.", item.photo_tg_id)
-                        sent_messages_err_count += 1
-                    else:
-                        logger.debug("Пользователю tg_id: %s отправлено сообщение об "
-                                                        "изменении цены.", user.tg_id)
                         sent_messages_count += 1
 
-        # Выводим статистику
-        msg = (f"\nОбновлено товаров: {modified_items_count}\n"
-            f"Отправлено уведомлений: {sent_messages_count}\n"
-            f"Ошибок при парсинге товаров: {len(items_parsing_errors_ids)}\n"
-            f"Ошибок при отравке уведомлений: {sent_messages_err_count}")
-        if items_parsing_errors_ids:
-            items_parsing_errors_ids_msg = (f"ID товаров в которых возникли ошибки "
-                                            f"при парсинге: {items_parsing_errors_ids}")
-            msg = msg + "\n" + items_parsing_errors_ids_msg
-        logger.info(msg)
+                    except SendPhotoError as e:
+                        logger.warning("Ошибка при отправке изображения\n."
+                                       "Error: %s\n", e)
+
+    # Выводим статистику
+    msg = (
+        f"\nОбновлено товаров: {modified_items_count}\n"
+        f"Отправлено уведомлений: {sent_messages_count}\n"
+        f"Ошибок при парсинге товаров: {items_parsing_errors_count}\n"
+    )
+
+    logger.info(msg)
+
 
 
 async def loop_check_price(bot: Bot, timeout: int):
     while True:
         try:
             await notify_price_changes(bot)
+
         except Exception:
             logging.exception("Ошибка во время выполнения Check price!")
         else:

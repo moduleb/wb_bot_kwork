@@ -36,7 +36,7 @@ async def get_all(session: AsyncSession, model: type[M]) -> list[M]:
 async def get_one_by_filters(session: AsyncSession,
                             model: type[M],
                             **filters) -> M | None:
-    print(filters)
+
     # Начинаем строить запрос
     query = select(model)
 

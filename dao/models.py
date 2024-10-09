@@ -63,6 +63,7 @@ class Item(Base):
                      nullable=False)
     market_name = Column(String)
     photo_tg_id = Column(String)
+    photo_url = Column(String)
 
     # Связь с пользователями
     users = relationship("User",

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
 from aiogram import Bot, Router, filters, types
 from dao import user_service
@@ -7,7 +8,10 @@ from db import AsyncSessionLocal
 from keyboards import command_list_kb
 from text import errors, messages
 from utills.checkings import is_admin
-from dao.models import User
+from utills.send_photo_msg import send_photo_by_photo_id, SendPhotoError
+
+if TYPE_CHECKING:
+    from dao.models import User
 
 router = Router()
 
@@ -51,12 +55,14 @@ async def get_all_items(msg: types.Message):
                                     origin_url=item.origin_url,
                                     price=item.price)
             try:
+                await send_photo_by_photo_id(
+                    bot=bot,
+                    chat_id=chat_id,
+                    photo_id=item.photo_tg_id,
+                    photo_url=item.photo_url,
+                    text=text,
+                    reply_markup=command_list_kb.delete(item.id))
 
-                await bot.send_photo(chat_id=chat_id,
-                                    photo=item.photo_tg_id,
-                                    caption=text,
-                                    parse_mode="Markdown",
-                                    reply_markup=command_list_kb.delete(item.id))
-            except Exception:
-                logger.exception("Ошибка при отправлении фото по photo_tg_id: %s",
-                                 item.photo_tg_id)
+            except SendPhotoError as e:
+                logger.warning("Ошибка при отправке изображения\n."
+                               "Error: %s\n", str(e))
