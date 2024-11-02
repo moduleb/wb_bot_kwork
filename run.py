@@ -40,10 +40,11 @@ async def main():
 
     try:
         # Запускаем процесс фонового отслеживания цен
-        task = asyncio.create_task(loop_check_price(bot,
-                                                settings.PRICE_UPDATE_TIMEOUT_IN_SEC))
+        task = asyncio.create_task(
+            loop_check_price(bot, settings.PRICE_UPDATE_TIMEOUT_IN_SEC)
+        )
 
-        # Решистрируем роутер
+        # Регистрируем роутер
         # dp.include_router(test_router)
         dp.include_router(delete_router)
         dp.include_router(list_router)
@@ -56,16 +57,17 @@ async def main():
         await set_commands(bot)
 
         await bot.delete_webhook(drop_pending_updates=True)
-        """Dы указываете боту удалить текущий вебхук.
-        drop_pending_updates=True указывает боту также удалить все ожидающие обновления,
-        которые могли быть накоплены во время использования вебхука."""
+        """Dы указываете боту удалить текущий webhook.
+        drop_pending_updates=True указывает боту также удалить
+        все ожидающие обновления,
+        которые могли быть накоплены во время использования webhook."""
 
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
-        """Запускает бота с использовнием метода Long Polling.
-        allowed_updates=dp.resolve_used_upate_types() указывает,
+        """Запускает бота с использованием метода Long Polling.
+        allowed_updates=dp.resolve_used_update_types() указывает,
         какие типы обновлений бот будет получать.
-        Бот будет ограничивать типы обновлений, которые он получает, только теми,
-        которые он может обработать,
+        Бот будет ограничивать типы обновлений, которые он получает,
+        только теми, которые он может обработать,
         Это полезно для оптимизации работы бота и уменьшения нагрузки на сервер."""
 
     except AiogramError:
