@@ -90,7 +90,7 @@ async def send_photo_by_photo_url(bot: Bot,
         logger.warning(msg)
         raise SendPhotoError(msg) from e
 
-    # except TelegramForbiddenError as e:
-    #     msg = "Не удалось отправить сообщение, пользователь заблокировал бота."
-    #     logger.info(msg)
-    #     raise SendPhotoError(msg) from e
+    except TelegramForbiddenError as e:
+        msg = "Не удалось отправить сообщение, пользователь заблокировал бота."
+        logger.info(msg)
+        raise SendPhotoError(msg) from e
