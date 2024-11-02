@@ -70,8 +70,11 @@ async def notify_price_changes(bot: Bot):
 
                         sent_messages_count += 1
 
+                    except SendPhotoError as e:
+                        logger.info("Ошибка при отправке сообщения.\nError: %s", e)
+
                     except Exception as e:
-                        logger.warning("Ошибка при отправке изображения\n."
+                        logger.warning("Неизвестная ошибка при отправке изображения\n."
                                        "Error: %s\n", e)
 
     # Выводим статистику

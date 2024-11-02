@@ -5,7 +5,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from aiogram.types.input_file import URLInputFile
 from aiohttp.client_exceptions import ClientResponseError
-from aiogram.exceptions import TelegramNetworkError
+from aiogram.exceptions import TelegramNetworkError, TelegramForbiddenError
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +85,12 @@ async def send_photo_by_photo_url(bot: Bot,
         raise SendPhotoError(msg) from e
 
     except TelegramBadRequest as e:
+        msg = ("Ошибка при отправке изображения по photo_url: %s.\n"
+                "Error: %s") % (photo_url, str(e))
+        logger.warning(msg)
+        raise SendPhotoError(msg) from e
+
+    except TelegramForbiddenError as e:
         msg = ("Ошибка при отправке изображения по photo_url: %s.\n"
                 "Error: %s") % (photo_url, str(e))
         logger.warning(msg)
